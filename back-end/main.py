@@ -1,5 +1,5 @@
 from bson import ObjectId
-from fastapi import Body, FastAPI, HTTPException, status
+from fastapi import Body, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import ReturnDocument
 
@@ -27,7 +27,6 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
 )
 async def get_all_cards():
     cards = await card_collection.find().to_list()
-    print(cards)
     return CardCollection(cards=cards)
 
 
@@ -39,7 +38,9 @@ async def get_all_cards():
     response_model_by_alias=False,
 )
 async def create_card(card: NoteCardModel = Body(...)):
-    new_card = await card_collection.insert_one(card.model_dump(by_alias=True))
+    new_card = await card_collection.insert_one(
+        card.model_dump(by_alias=True, exclude=["id"])
+    )
     created_card = await card_collection.find_one({"_id": new_card.inserted_id})
     return created_card
 
@@ -52,6 +53,7 @@ async def create_card(card: NoteCardModel = Body(...)):
 )
 async def update_card(id: str, card: UpdateCardModel = Body(...)):
     print("UPDATING CARD with id: ", id)
+    print(card)
     card = {k: v for k, v in card.model_dump(by_alias=True).items() if v is not None}
     print(card)
     if len(card) >= 1:
@@ -69,3 +71,13 @@ async def update_card(id: str, card: UpdateCardModel = Body(...)):
         return existing_card
 
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
+
+
+@app.delete("/cards/{id}", response_description="Delete a Card")
+async def delete_card(id: str):
+    delete_result = await card_collection.delete_one({"_id": ObjectId(id)})
+
+    if delete_result.deleted_count == 1:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status_code=404, detail=f"Card with id: {id} not found")

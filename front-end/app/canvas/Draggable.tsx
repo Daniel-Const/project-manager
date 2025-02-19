@@ -3,14 +3,18 @@ import { useDrag } from "react-dnd";
 import { ItemTypes } from "~/constants";
 
 export function Draggable({
-  position,
+  pos,
   onPositionUpdate,
+  onDelete,
   children,
 }: {
-  position: Position;
+  pos: Position;
   onPositionUpdate: (position: Position) => void;
+  onDelete: () => void;
   children: ReactNode;
 }) {
+  const [position, setPosition] = useState<Position>(pos);
+
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: ItemTypes.CARD,
@@ -20,9 +24,11 @@ export function Draggable({
       end: (_item, monitor) => {
         if (monitor.didDrop()) {
           const result = monitor.getDropResult() as DropResult;
+          setPosition(result.position);
           onPositionUpdate(result.position);
         }
       },
+      canDrag: true,
     }),
     []
   );
@@ -35,7 +41,15 @@ export function Draggable({
   };
 
   return (
-    <div ref={dragRef} style={style}>
+    <div style={style}>
+      <div ref={dragRef} className="flex bg-blue-500 w-full h-8">
+        <button
+          onClick={() => onDelete()}
+          className="text-center relative ml-100 text-xl mr-2 hover:text-red-400"
+        >
+          x
+        </button>
+      </div>
       {children}
     </div>
   );
