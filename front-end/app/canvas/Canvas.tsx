@@ -27,7 +27,7 @@ export default function Canvas({ children }: { children: ReactNode }) {
         ref={drop}
         className="flex items-center justify-center pt-16 pb-4 w-screen h-screen"
       ></main>
-      { children }
+      {children}
     </>
   );
 }

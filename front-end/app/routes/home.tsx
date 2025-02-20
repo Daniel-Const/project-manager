@@ -3,9 +3,15 @@ import type { Route } from "./+types/home";
 import Canvas from "~/canvas/Canvas";
 import { NoteCard } from "~/cards/NoteCard";
 import Toolbar from "~/canvas/Toolbar";
-import api from "~/api";
 import SaveIcon from "~/canvas/SaveIcon";
-import { Draggable } from "~/canvas/Draggable";
+import { BaseCard } from "~/canvas/BaseCard";
+import initApi from "~/api";
+
+interface Resize {
+  cardIndex: number | null;
+  startX: number;
+  startY: number;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,12 +26,23 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const [cards, setCards] = useState<Card[]>([]);
   const [showSaveIcon, setSaveIcon] = useState(false);
-  const [isSaving, setSaving] = useState(false);
+  const [resize, setResize] = useState<Resize>({
+    cardIndex: null,
+    startX: 0,
+    startY: 0,
+  });
+
+  const api = initApi();
 
   const fetchCards = async () => {
-    api.getCards().then((body: { cards: Card[] }) => {
-      setCards(body.cards);
-    });
+    api
+      .getCards()
+      .then((body: { cards: Card[] }) => {
+        setCards(body.cards);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   // Fetch cards from the DB
@@ -33,11 +50,20 @@ export default function Home() {
     fetchCards();
   }, []);
 
+  const numberOfCards = cards.length;
   const handleCreateCard = async () => {
-    const newCard = await api.createCard("Notes", "Some cool notes here...", {
-      x: 300,
-      y: 300,
-    });
+    const newCard = await api.createCard(
+      "Notes",
+      "Some cool notes here...",
+      {
+        x: 300,
+        y: 300,
+      },
+      {
+        width: 300,
+        height: 300,
+      }
+    );
     const newCards = [...cards, newCard];
     setCards(newCards);
   };
@@ -56,6 +82,7 @@ export default function Home() {
       title?: string;
       text?: string;
       position?: Position;
+      size?: Dimensions;
     }
   ) => {
     setCards((_cards) =>
@@ -81,8 +108,6 @@ export default function Home() {
       );
   };
 
-  const numberOfCards = cards.length;
-
   return (
     <>
       {showSaveIcon ? <SaveIcon /> : ""}
@@ -93,19 +118,23 @@ export default function Home() {
 
       <Canvas>
         {cards.map((card, idx) => (
-          <Draggable
+          <BaseCard
             onPositionUpdate={(position: Position) => {
               updateCard(idx, { position });
             }}
+            onSizeUpdate={(size: Dimensions) => {
+              updateCard(idx, { size });
+            }}
             onDelete={() => deleteCard(idx)}
             pos={card.position}
+            dim={card.size}
             key={`${numberOfCards}-${idx}`}
           >
             <NoteCard
               data={card}
               handleChange={(title, text) => updateCard(idx, { title, text })}
             />
-          </Draggable>
+          </BaseCard>
         ))}
       </Canvas>
     </>

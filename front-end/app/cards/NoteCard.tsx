@@ -11,7 +11,7 @@ export function NoteCard({
   const [text, setText] = useState(data.text);
 
   return (
-    <div className="flex flex-col border p-4">
+    <div className="flex flex-col border p-4 h-full">
       <input
         className="w-full bg-transparent border-0 text-2xl pb-4"
         value={title}
@@ -26,7 +26,7 @@ export function NoteCard({
           setText(e.target.value);
           handleChange(title, e.target.value);
         }}
-        className="min-h-4 p-2"
+        className="min-h-4 p-2 h-full"
       ></textarea>
     </div>
   );
