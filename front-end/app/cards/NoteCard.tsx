@@ -26,7 +26,8 @@ export function NoteCard({
           setText(e.target.value);
           handleChange(title, e.target.value);
         }}
-        className="min-h-4 p-2 h-full"
+        className="p-2 h-full bg-gray-800"
+        style={{ resize: "none" }}
       ></textarea>
     </div>
   );
