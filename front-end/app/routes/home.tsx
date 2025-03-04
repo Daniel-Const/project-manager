@@ -6,14 +6,10 @@ import Toolbar from "~/canvas/Toolbar";
 import SaveIcon from "~/canvas/SaveIcon";
 import { BaseCard } from "~/canvas/BaseCard";
 import initApi from "~/api";
+import Drawbar from "~/canvas/Drawbar";
 
-interface Resize {
-  cardIndex: number | null;
-  startX: number;
-  startY: number;
-}
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Project Management Canvas" },
     {
@@ -26,11 +22,6 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const [cards, setCards] = useState<Card[]>([]);
   const [showSaveIcon, setSaveIcon] = useState(false);
-  const [resize, setResize] = useState<Resize>({
-    cardIndex: null,
-    startX: 0,
-    startY: 0,
-  });
 
   const api = initApi();
 
@@ -73,7 +64,9 @@ export default function Home() {
     for (const card of cards) {
       await api.updateCard(card);
     }
-    setSaveIcon(false);
+    setTimeout(() => {
+      setSaveIcon(false);
+    }, 1000)
   };
 
   const updateCard = (
@@ -116,7 +109,9 @@ export default function Home() {
         onSave={() => handleSave(cards)}
       />
 
-      <Canvas>
+      <Drawbar />
+
+      <Canvas drawColor={"white"}>
         {cards.map((card, idx) => (
           <BaseCard
             onPositionUpdate={(position: Position) => {
